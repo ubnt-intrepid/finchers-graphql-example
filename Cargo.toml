@@ -1,0 +1,27 @@
+cargo-features = ["edition"]
+
+[package]
+name = "finchers-graphql-example"
+version = "0.0.0"
+edition = "2018"
+publish = false
+
+[dependencies]
+finchers = { git = "https://github.com/finchers-rs/finchers.git" }
+finchers-juniper = { git = "https://github.com/finchers-rs/finchers-juniper.git" }
+
+bcrypt = "0.2.0"
+diesel = { version = "1.3.2", features = ["postgres", "r2d2"] }
+dotenv = "0.13.0"
+failure = { version = "0.1.2", features = ["derive"] }
+futures-preview = { git = "https://github.com/rust-lang-nursery/futures-rs.git", branch = "master", features = ["tokio-compat"] }
+http = "0.1.10"
+jsonwebtoken = "5.0.0"
+juniper = { git = "https://github.com/graphql-rust/juniper.git", branch = "master" }
+log = "0.4.4"
+percent-encoding = "1.0.1"
+pretty_env_logger = "0.2.4"
+serde = { version = "1.0.75", features = ["derive"] }
+tokio = "0.1.8"
+tokio-threadpool = "0.1.6"
+time = "0.1.40"
