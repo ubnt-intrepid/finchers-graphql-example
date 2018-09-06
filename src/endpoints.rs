@@ -1,5 +1,5 @@
 use finchers::endpoint;
-use finchers::endpoint::{EndpointExt, SharedEndpoint};
+use finchers::endpoint::{EndpointExt, SendEndpoint};
 use finchers::endpoints::header;
 use finchers::error;
 use finchers::output::payload::Empty;
@@ -13,7 +13,9 @@ use crate::graphql::{Context, Schema};
 use crate::token::TokenManager;
 
 /// Creates an endpoint which always returns an HTTP response redirecting to the specified URI.
-pub fn redirect_to(uri: impl AsRef<str>) -> impl SharedEndpoint<(Response<Empty>,)> {
+pub fn redirect_to(
+    uri: impl AsRef<str>,
+) -> impl for<'a> SendEndpoint<'a, Output = (Response<Empty>,)> {
     let uri = uri.as_ref().to_owned();
     endpoint::unit().map(move || {
         Response::builder()
@@ -30,7 +32,9 @@ pub struct Config {
     pub schema: Schema,
 }
 
-pub fn handle_graphql(config: Config) -> impl SharedEndpoint<(GraphQLResponse,)> {
+pub fn handle_graphql(
+    config: Config,
+) -> impl for<'a> SendEndpoint<'a, Output = (GraphQLResponse,)> {
     let Config {
         pool,
         token_manager,

@@ -12,6 +12,6 @@
 extern crate diesel;
 
 pub mod database;
+pub mod endpoints;
 pub mod graphql;
 pub mod token;
-pub mod endpoints;

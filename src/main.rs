@@ -11,13 +11,13 @@ use failure::Fallible;
 use log::info;
 use std::env;
 
-use finchers::endpoint::{EndpointExt, SharedEndpoint};
-use finchers::{route, routes};
+use finchers::endpoint::{EndpointExt, SendEndpoint};
+use finchers::{path, routes};
 
 use finchers_graphql_example::database::ConnPool;
+use finchers_graphql_example::endpoints::{handle_graphql, redirect_to, Config};
 use finchers_graphql_example::graphql::create_schema;
 use finchers_graphql_example::token::TokenManager;
-use finchers_graphql_example::endpoints::{handle_graphql, redirect_to, Config};
 
 fn main() -> Fallible<()> {
     dotenv::dotenv()?;
@@ -30,9 +30,9 @@ fn main() -> Fallible<()> {
     };
 
     let endpoint = routes![
-        route!(@get /).and(redirect_to("/graphiql").into_endpoint()),
-        route!(@get / "graphiql" /).and(finchers_juniper::graphiql("/query")),
-        route!(/ "query" /).and(handle_graphql(config).into_endpoint()),
+        path!(@get /).and(redirect_to("/graphiql").into_local()),
+        path!(@get / "graphiql" /).and(finchers_juniper::graphiql("/query")),
+        path!(/ "query" /).and(handle_graphql(config).into_local()),
     ];
 
     info!("Listening on http://127.0.0.1:4000");
