@@ -22,15 +22,12 @@ impl Context {
     }
 
     pub fn signin(&self, username: String, email: String, password: String) -> FieldResult<String> {
-        let user = self.conn.create_user(username, email, password)?;
+        let user = DbUser::create(&self.conn, username, email, password)?;
         self.generate_token(user)
     }
 
     pub fn login(&self, email: String, password: String) -> FieldResult<String> {
-        let user = self
-            .conn
-            .get_user_by_email(email)?
-            .ok_or_else(|| "No such user")?;
+        let user = DbUser::find_by_email(&self.conn, email)?.ok_or_else(|| "No such user")?;
 
         if !user.verify(&password) {
             return Err("incorrect password".into());
@@ -40,8 +37,7 @@ impl Context {
     }
 
     pub fn find_user_by_id(&self, id: i32) -> FieldResult<Option<User>> {
-        self.conn
-            .find_user_by_id(id)
+        DbUser::find_by_id(&self.conn, id)
             .map(|user_opt| user_opt.map(User))
             .map_err(Into::into)
     }

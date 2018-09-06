@@ -2,29 +2,13 @@ use finchers::endpoint;
 use finchers::endpoint::{EndpointExt, SendEndpoint};
 use finchers::endpoints::header;
 use finchers::error;
-use finchers::output::payload::Empty;
 use finchers_juniper::{GraphQLRequest, GraphQLResponse};
 
-use http::{Response, StatusCode};
 use std::sync::Arc;
 
 use crate::database::ConnPool;
 use crate::graphql::{Context, Schema};
 use crate::token::TokenManager;
-
-/// Creates an endpoint which always returns an HTTP response redirecting to the specified URI.
-pub fn redirect_to(
-    uri: impl AsRef<str>,
-) -> impl for<'a> SendEndpoint<'a, Output = (Response<Empty>,)> {
-    let uri = uri.as_ref().to_owned();
-    endpoint::unit().map(move || {
-        Response::builder()
-            .status(StatusCode::MOVED_PERMANENTLY)
-            .header("location", &*uri)
-            .body(Empty)
-            .expect("valid response")
-    })
-}
 
 pub struct Config {
     pub pool: ConnPool,
@@ -67,8 +51,9 @@ pub fn handle_graphql(
                 token_manager,
             });
 
-    finchers_juniper::request()
-        .and(endpoint::value(Arc::new(schema)))
-        .and(fetch_graphql_context)
-        .and_then(|request: GraphQLRequest, schema, context| request.execute_async(schema, context))
+    let schema = Arc::new(schema);
+
+    (finchers_juniper::request(), fetch_graphql_context).and_then(
+        move |request: GraphQLRequest, context| request.execute_async(schema.clone(), context),
+    )
 }

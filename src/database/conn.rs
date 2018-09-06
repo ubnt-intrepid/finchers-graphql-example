@@ -3,19 +3,13 @@ use std::fmt;
 use futures::compat::Future01CompatExt;
 use futures::future::{Future, TryFutureExt};
 
-use diesel;
 use diesel::pg::PgConnection;
-use diesel::prelude::*;
 use diesel::r2d2::{ConnectionManager, Pool, PooledConnection};
 
-use bcrypt;
 use failure::Fallible;
 use tokio::prelude::future::poll_fn as poll_fn_01;
 use tokio::prelude::Future as _Future01;
 use tokio_threadpool::blocking;
-
-use super::model::{NewUser, User};
-use super::schema::users;
 
 pub struct ConnPool {
     pool: Pool<ConnectionManager<PgConnection>>,
@@ -51,33 +45,8 @@ impl fmt::Debug for Conn {
 }
 
 impl Conn {
-    pub fn create_user(&self, username: String, email: String, password: String) -> Fallible<User> {
-        let new_user = NewUser {
-            username,
-            email,
-            password: bcrypt::hash(&password, bcrypt::DEFAULT_COST)?,
-        };
-        diesel::insert_into(users::table)
-            .values(&new_user)
-            .get_result::<User>(&*self.conn)
-            .map_err(Into::into)
-    }
-
-    pub fn get_user_by_email(&self, email: String) -> Fallible<Option<User>> {
-        use super::schema::users::dsl;
-        dsl::users
-            .filter(dsl::email.eq(email))
-            .get_result::<User>(&*self.conn)
-            .optional()
-            .map_err(Into::into)
-    }
-
-    pub fn find_user_by_id(&self, id: i32) -> Fallible<Option<User>> {
-        use super::schema::users::dsl;
-        dsl::users
-            .filter(dsl::id.eq(id))
-            .get_result::<User>(&*self.conn)
-            .optional()
-            .map_err(Into::into)
+    #[inline]
+    pub fn get(&self) -> &PgConnection {
+        &*self.conn
     }
 }
