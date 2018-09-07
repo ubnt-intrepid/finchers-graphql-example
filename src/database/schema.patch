@@ -1,0 +1,10 @@
+diff --git a/src/database/schema.rs b/src/database/schema.rs
+index 065d72c..a29fb4f 100644
+--- a/src/database/schema.rs
++++ b/src/database/schema.rs
+@@ -1,3 +1,5 @@
++#![cfg_attr(rustfmt, rustfmt_skip)]
++
+ table! {
+     posts (id) {
+         id -> Int4,

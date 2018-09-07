@@ -1,10 +1,10 @@
 use juniper::{graphql_object, FieldResult};
 
 use super::context::Context;
-use crate::database::User as DbUser;
+use crate::database::model::{Post as PostModel, User as UserModel};
 
 #[derive(Debug)]
-pub struct User(pub DbUser);
+pub struct User(pub UserModel);
 
 graphql_object!(User: () |&self| {
     field username() -> &String {
@@ -17,6 +17,23 @@ graphql_object!(User: () |&self| {
 });
 
 #[derive(Debug)]
+pub struct Post(pub PostModel);
+
+graphql_object!(Post: () | &self | {
+    field title() -> &String {
+        &self.0.title
+    }
+
+    field body() -> &String {
+        &self.0.body
+    }
+
+    field published() -> bool {
+        self.0.published
+    }
+});
+
+#[derive(Debug)]
 pub struct Query {
     pub(super) _priv: (),
 }
@@ -25,10 +42,11 @@ graphql_object!(Query: Context |&self| {
     field apiVersion() -> &str { "1.0" }
 
     field me(&executor) -> FieldResult<Option<User>> {
-        let token = executor.context().token.as_ref()
-            .ok_or_else(|| "You are not authenticated")?;
-        executor.context().find_user_by_id(token.user_id())
-            .map_err(Into::into)
+        executor.context().current_user()
+    }
+
+    field posts(&executor) -> FieldResult<Vec<Post>> {
+        executor.context().posts()
     }
 });
 
@@ -44,5 +62,9 @@ graphql_object!(Mutation: Context | &self | {
 
     field login(&executor, email: String, password: String) -> FieldResult<String> {
         executor.context().login(email, password)
+    }
+
+    field createPost(&executor, title: String, body: String) -> FieldResult<Post> {
+        executor.context().create_post(title, body)
     }
 });

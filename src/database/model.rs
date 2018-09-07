@@ -2,7 +2,9 @@ use diesel::prelude::*;
 use failure::Fallible;
 
 use super::conn::Conn;
-use super::schema::users;
+use super::schema::{posts, users};
+
+// ==== users ====
 
 #[derive(Debug, Queryable)]
 pub struct User {
@@ -51,6 +53,14 @@ impl User {
             .optional()
             .map_err(Into::into)
     }
+
+    pub fn all_posts(conn: &Conn, user_id: i32) -> Fallible<Vec<Post>> {
+        use super::schema::posts::dsl;
+        dsl::posts
+            .filter(dsl::user_id.eq(user_id))
+            .load(conn.get())
+            .map_err(Into::into)
+    }
 }
 
 #[derive(Debug, Insertable)]
@@ -59,4 +69,37 @@ pub struct NewUser {
     pub username: String,
     pub email: String,
     pub password: String,
+}
+
+// ==== posts ====
+
+#[derive(Debug, Queryable)]
+pub struct Post {
+    pub id: i32,
+    pub user_id: i32,
+    pub title: String,
+    pub body: String,
+    pub published: bool,
+}
+
+impl Post {
+    pub fn create(conn: &Conn, user_id: i32, title: String, body: String) -> Fallible<Post> {
+        let new_post = NewPost {
+            user_id,
+            title,
+            body,
+        };
+        diesel::insert_into(posts::table)
+            .values(&new_post)
+            .get_result(conn.get())
+            .map_err(Into::into)
+    }
+}
+
+#[derive(Debug, Insertable)]
+#[table_name = "posts"]
+pub struct NewPost {
+    pub user_id: i32,
+    pub title: String,
+    pub body: String,
 }
