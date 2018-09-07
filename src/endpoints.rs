@@ -4,6 +4,7 @@ use finchers::endpoints::header;
 use finchers::error;
 use finchers_juniper::{GraphQLRequest, GraphQLResponse};
 
+use futures::future::TryFutureExt;
 use std::sync::Arc;
 
 use crate::database::ConnPool;
@@ -54,6 +55,10 @@ pub fn handle_graphql(
     let schema = Arc::new(schema);
 
     (finchers_juniper::request(), fetch_graphql_context).and_then(
-        move |request: GraphQLRequest, context| request.execute_async(schema.clone(), context),
+        move |request: GraphQLRequest, context| {
+            request
+                .execute_async(schema.clone(), context)
+                .map_err(error::fail)
+        },
     )
 }
