@@ -28,4 +28,5 @@ time = "0.1.40"
 
 [patch.crates-io]
 finchers = { git = "https://github.com/finchers-rs/finchers.git", branch = "master" }
+finchers-juniper = { git = "https://github.com/finchers-rs/finchers-juniper.git", branch = "master" }
 juniper = { git = "https://github.com/graphql-rust/juniper.git", branch = "master" }
