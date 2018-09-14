@@ -11,8 +11,8 @@ use failure::Fallible;
 use log::info;
 use std::env;
 
-use finchers::endpoint::{EndpointExt, SendEndpoint};
 use finchers::endpoints::logging::logging;
+use finchers::prelude::*;
 use finchers::{path, routes};
 
 use finchers_graphql_example::database::ConnPool;
@@ -32,8 +32,10 @@ fn main() -> Fallible<()> {
         path!(@get /).and(finchers_juniper::graphiql("/graphql")),
         path!(/ "graphql" /)
             .and(fetch_graphql_context)
-            .with(finchers_juniper::execute(create_schema())),
-    ].with(logging());
+            .wrap(finchers_juniper::execute(create_schema())),
+    ];
+
+    let endpoint = endpoint.wrap(logging());
 
     info!("Listening on http://127.0.0.1:4000");
     finchers::launch(endpoint).start("127.0.0.1:4000");

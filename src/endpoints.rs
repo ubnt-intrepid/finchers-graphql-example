@@ -1,9 +1,6 @@
 use std::sync::Arc;
 
-use finchers::endpoint;
-use finchers::endpoint::{EndpointExt, SendEndpoint};
-use finchers::endpoints::header;
-use finchers::error;
+use finchers::prelude::*;
 
 use crate::database::ConnPool;
 use crate::graphql::Context;
@@ -18,14 +15,14 @@ pub fn fetch_graphql_context(
         async move { await!(future).map_err(Into::into) }
     });
 
-    let parse_token = header::raw("authorization")
+    let parse_token = endpoints::header::raw("authorization")
         .and(endpoint::value(Arc::new(token_manager)))
         .and_then(
             async move |value: Option<_>, token_manager: Arc<TokenManager>| {
                 let token = value
                     .map(|value| token_manager.decode(value))
                     .transpose()
-                    .map_err(error::bad_request)?;
+                    .map_err(finchers::error::bad_request)?;
                 Ok((token, token_manager))
             },
         );
