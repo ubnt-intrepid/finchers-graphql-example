@@ -26,7 +26,7 @@ fn main() -> Fallible<()> {
 
     let pool = ConnPool::init(env::var("DATABASE_URL")?)?;
     let token_manager = TokenManager::new(env::var("JWT_SECRET")?);
-    let fetch_graphql_context = fetch_graphql_context(pool, token_manager).into_local();
+    let fetch_graphql_context = fetch_graphql_context(pool, token_manager);
 
     let endpoint = routes![
         path!(@get /).and(finchers_juniper::graphiql("/graphql")),

@@ -1,6 +1,7 @@
 use std::sync::Arc;
 
 use finchers::prelude::*;
+use finchers::endpoint::IntoLocal;
 
 use crate::database::ConnPool;
 use crate::graphql::Context;
@@ -9,7 +10,7 @@ use crate::token::TokenManager;
 pub fn fetch_graphql_context(
     pool: ConnPool,
     token_manager: TokenManager,
-) -> impl for<'a> SendEndpoint<'a, Output = (Context,)> {
+) -> IntoLocal<impl for<'a> SendEndpoint<'a, Output = (Context,)>> {
     let acquire_conn = endpoint::unit().and_then(move || {
         let future = pool.acquire_connection();
         async move { await!(future).map_err(Into::into) }
@@ -34,4 +35,5 @@ pub fn fetch_graphql_context(
             token,
             token_manager,
         })
+    .into_local()
 }
